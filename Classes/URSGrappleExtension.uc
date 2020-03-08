@@ -1,6 +1,9 @@
 /*
  *  ChangeLog:
  *
+ *  *Version _5l* [Changed] Timestamp format for special event logs
+ *                [Added]   Special event log entry AUTO or MAN
+ *
  *  *Version _5k* [Added]   Broadcasted message for insane combos
  *                [Added]   Log feature with auto logging for insane combos
  *

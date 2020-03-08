@@ -454,13 +454,13 @@ function respawned() {
  *  $DESCRIPTION  Writes the current timestamp to a special client log file.
  *
  **************************************************************************************************/
-simulated function specialLog() {
-  local string timeStamp, FileName, secondsElapsedStr, secondsRemainingStr;
+simulated function specialLog(optional bool bAuto) {
+  local string timeStamp, FileName, secondsElapsedStr, secondsRemainingStr, autoStr;
   local int minutesElapsed, secondsElapsed, minutesRemaining, secondsRemaining;
 
   // Construct FileName
   timeStamp = Class'NexgenUtil'.static.serializeDate(level.year, level.month, level.day, level.hour, level.minute);
-  FileName = "./"$left(string(client), instr(string(client), "."))$"_"$level.day$"-"$level.month$"_"$level.hour$"-"$level.minute;
+  FileName = "./"$left(string(client), instr(string(client), "."))$"-"$level.year$"-"$level.month$"-"$level.day$"-"$level.hour$"-"$level.minute$"-"$level.second;
 
   // Create file actor
   if(specialLogFile == none) {
@@ -480,8 +480,11 @@ simulated function specialLog() {
   else                           secondsElapsedStr   = String(secondsElapsed);
   if(len(secondsRemaining) == 1) secondsRemainingStr = "0"$secondsRemaining;
   else                           secondsRemainingStr = String(secondsRemaining);
+  
+  if(bAuto) autoStr = "AUTO";
+  else      autoStr = "MAN";
     
-  specialLogFile.println(minutesElapsed$":"$secondsElapsedStr$Chr(9)$minutesRemaining$":"$secondsRemainingStr, true);
+  specialLogFile.println(autoStr$Chr(9)$minutesElapsed$":"$secondsElapsedStr$Chr(9)$minutesRemaining$":"$secondsRemainingStr, true);
   specialLogFile.flushLog();
 }
 
@@ -503,7 +506,7 @@ function insaneCombo() {
  *
  **************************************************************************************************/
 simulated function insaneComboAutoLog() {
-  if(client.gc.get(SSTR_bAutoLogSpecialEvent, "false")  ~= "true") specialLog();
+  if(client.gc.get(SSTR_bAutoLogSpecialEvent, "false")  ~= "true") specialLog(true);
 }
 
 /***************************************************************************************************
