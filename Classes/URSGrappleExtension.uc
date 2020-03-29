@@ -1,6 +1,8 @@
 /*
  *  ChangeLog:
  *
+ *  *Version _5m* [Removed] Features now taken care of by NexgenATB
+ *
  *  *Version _5l* [Changed] Timestamp format for special event logs
  *                [Added]   Special event log entry AUTO or MAN
  *
@@ -142,8 +144,6 @@ function bool initialize() {
 	
 	control.sConf.serverInfoPanelClass = class'URSRCPGrapple';
 
-  control.teamBalancer = spawn(class'URSTBDisabler', self);
-
   getSCTFGame();
 
   for(indexActor=0; indexActor<ArrayCount(conf.spawnActors); indexActor++) {
@@ -257,12 +257,6 @@ function clientCreated(NexgenClient client) {
 function clientInitialized(NexgenClient client) {
   local URSGrappleClient xClient;
   local NXPClient NexgenPlusClient;
-
-  // Announce team
-  if(control.gInf.gameState == control.gInf.GS_Playing && 
-     (client.team == 0 || client.team == 1) && CTFSoundTeam[client.team] != none) {
-    client.player.clientPlaySound(CTFSoundTeam[client.team], , true);
-  }
   
   // Locate this client's NXPClient instance
   xClient = URSGrappleClient(client.getController(class'URSGrappleClient'.default.ctrlID));
@@ -479,24 +473,6 @@ function scoreKill(Pawn killer, Pawn victim) {
 		}
 		
 	}
-}
-
-/***************************************************************************************************
- *
- *  $DESCRIPTION  Called when the game has started.
- *
- **************************************************************************************************/
-function gameStarted() {
-	local NexgenClient c;
-  local Sound playSound;
-  
-  playSound = Sound(dynamicLoadObject(conf.playSound, class'Sound'));
-  
-  if(playSound != none) {
-    for(c=control.clientList;c!=none;c=c.nextClient) {
-      c.player.clientPlaySound(playSound, , true);
-    }
-  }
 }
 
 /***************************************************************************************************
