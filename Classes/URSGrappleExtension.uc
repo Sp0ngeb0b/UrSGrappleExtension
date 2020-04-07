@@ -1,6 +1,11 @@
 /*
  *  ChangeLog:
  *
+ *  *Version _6*  [Added]   Further insane combo messages
+ *                [Fixed]   Accessed nones with bots
+ *                [Fixed]   Color tags with disabled NexgenHUD
+ *                [Misc]    Compiled for Nexgen112
+ *
  *  *Version _5m* [Removed] Features now taken care of by NexgenATB
  *
  *  *Version _5l* [Changed] Timestamp format for special event logs
@@ -102,6 +107,12 @@ var Sound CTFSoundTaken[2];
 var Sound CTFSoundTeam[2];
 var Sound CTFSoundReturnExtra;
 var Sound CTFSoundTakenYou;
+
+// Messages
+var localized string multiKillMessage[5];         // Multi kill message strings.
+var localized string cheaterMessage;              // Message for extreme players.
+var localized string insaneComboMessage;          // Message for an insane combo.
+var localized string insaneComboMessageWicked[5]; // Messages for a wicked insane combo.
 
 // Extra player attributes.
 const PA_Captures = "captures";
@@ -463,7 +474,7 @@ function scoreKill(Pawn killer, Pawn victim) {
 			// Check for double, multi, ultra and monsterrrrrrrr kills.
 			if (level.timeSeconds - xClient.lastKillTime < maxMultiScoreInterval) {
 				xClient.multiLevel++;
-				level.game.broadcastLocalizedMessage(class'UrSGrappleMultiKillMessage', xClient.multiLevel, killer.playerReplicationInfo);
+        broadcastMultiKill(xClient.multiLevel, client.playerName);
 			} else {
 				xClient.multiLevel = 0;
 			}
@@ -720,7 +731,7 @@ function mutatorTakeDamage(out int actualDamage, Pawn victim, Pawn instigatedBy,
   xClient = getXClient(victim);
  
 	// Check if damage should be prevented.
-	if(xClient.client != none && damageType != control.suicideDamageType) {
+	if(xClient != none && xClient.client != none && damageType != control.suicideDamageType) {
 		checkSpawnProtection(xClient, instigatedBy, damageType, actualDamage, bPreventDamage); 
     
     if (bool(bPreventDamage)) actualDamage = 0;
@@ -759,7 +770,7 @@ function bool preventDeath(Pawn victim, Pawn killer, name damageType, vector hit
   xClient = getXClient(victim);
 	
 	// Check if damage should be prevented.
-	if (xClient.client != None && damageType != control.suicideDamageType) {
+	if (xClient != none && xClient.client != None && damageType != control.suicideDamageType) {
 		checkSpawnProtection(xClient, killer, damageType, 99999, bPreventDamage);
     
     // Prevent the damage.
@@ -792,10 +803,12 @@ function bool handleMsgCommand(PlayerPawn sender, string msg) {
 	switch (cmd) {
 		case "!grapple":
 			xClient = getXClient(sender);
-			if (xClient != none && xClient.client.bInitialized) {
-				xClient.showGrapple();
-        return true;
-			} else Sender.ClientMessage("<C00>Command requires initialisation...");
+			if (xClient != none) {
+        if(xClient.client.bInitialized) {
+          xClient.showGrapple();
+          return true;
+        } else xClient.client.showMsg("<C00>Command requires initialisation...");
+      }
 		break;
     case "!LC":
     case "!lc":
@@ -803,9 +816,11 @@ function bool handleMsgCommand(PlayerPawn sender, string msg) {
     case "!zp":
     	xClient = getXClient(sender);
 			if (xClient != none) {
-				xClient.showLCPanel();
-        return true;
-			} else Sender.ClientMessage("<C00>Command requires initialisation...");
+        if(xClient.client.bInitialized) {
+          xClient.showLCPanel();
+          return true;
+        } else xClient.client.showMsg("<C00>Command requires initialisation...");
+      }
     break;
 
 		// Not a command.
@@ -934,6 +949,52 @@ function playerRespawned(NexgenClient client) {
 
 /***************************************************************************************************
  *
+ *  $DESCRIPTION  Broadcasts a multi kill to all players.
+ *
+ **************************************************************************************************/
+function broadcastMultiKill(int type, string playerName) {
+  local string msg;
+  
+  if(type < 1) return;
+
+  if (type == 10) {
+		msg = class'NexgenUtil'.static.format(cheaterMessage, playerName);
+  } else if (type > arrayCount(multiKillMessage)) {
+    msg = class'NexgenUtil'.static.format(multiKillMessage[arrayCount(multiKillMessage) - 1], playerName);
+  } else {
+    msg = class'NexgenUtil'.static.format(multiKillMessage[type - 1], playerName);
+  }
+  
+  if(msg != "") control.broadcastMsg(msg);
+}
+
+/***************************************************************************************************
+ *
+ *  $DESCRIPTION  Broadcasts an insane combo to all players.
+ *
+ **************************************************************************************************/
+function broadcastInsaneCombo(int type, string playerName) {
+  local string msg;
+  
+  if (type == 0) {
+    msg = class'NexgenUtil'.static.format(insaneComboMessage, playerName);
+  } else if(type >= 5  && type < 10) {
+    msg = class'NexgenUtil'.static.format(insaneComboMessageWicked[0], playerName);
+  } else if(type >= 10 && type < 15) {
+    msg = class'NexgenUtil'.static.format(insaneComboMessageWicked[1], playerName);
+  } else if(type >= 15 && type < 20) {
+    msg = class'NexgenUtil'.static.format(insaneComboMessageWicked[2], playerName);
+  } else if(type >= 20 && type < 25) {
+    msg = class'NexgenUtil'.static.format(insaneComboMessageWicked[3], playerName);
+  } else if(type >= 20 && type < 30) {
+    msg = class'NexgenUtil'.static.format(insaneComboMessageWicked[4], playerName);
+  }
+  
+  if(msg != "") control.broadcastMsg(msg);
+}
+
+/***************************************************************************************************
+ *
  *  $DESCRIPTION  Default properties block.
  *
  **************************************************************************************************/
@@ -943,4 +1004,16 @@ defaultproperties
      pluginName="UrS Grapple Extension"
      pluginAuthor="Sp0ngeb0b"
      pluginVersion="5"
+     MultiKillMessage(0)="<C03>%1 had a Double Kill."
+     MultiKillMessage(1)="<C02>%1 had a Multi Kill!"
+     MultiKillMessage(2)="<C06>%1 had an ULTRA KILL!!"
+     MultiKillMessage(3)="<C10>%1 had a  M O N S T E R  KILL!!!"
+     MultiKillMessage(4)="<C10>%1 had another  M O N S T E R  KILL!!!"
+     cheaterMessage="<C10>%1 should get a life! :D"
+     insaneComboMessage="<C06>%1 had an insane combo!"
+     insaneComboMessageWicked(0)="<C06>%1 had another insane combo - WICKED SICK!"
+     insaneComboMessageWicked(1)="<C06>%1 had another insane combo - IMPRESSIVE!"
+     insaneComboMessageWicked(2)="<C06>%1 had another insane combo - EXCELLENT!"
+     insaneComboMessageWicked(3)="<C06>%1 had another insane combo - OUTSTANDING!"
+     insaneComboMessageWicked(4)="<C06>%1 had another insane combo - UNREAL!"
 }

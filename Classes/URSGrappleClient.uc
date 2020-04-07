@@ -494,8 +494,8 @@ simulated function specialLog(optional bool bAuto) {
  *
  **************************************************************************************************/
 function insaneCombo() {
-  if(insaneComboAmount%5 >= SCTFPRI.insaneCombos%5) level.game.broadcastLocalizedMessage(class'UrSGrappleMultiKillMessage', 999, client.player.playerReplicationInfo);
-  else                                              level.game.broadcastLocalizedMessage(class'UrSGrappleMultiKillMessage', 998, client.player.playerReplicationInfo);
+  if(insaneComboAmount%5 >= SCTFPRI.insaneCombos%5 || SCTFPRI.insaneCombos-insaneComboAmount > 5) xControl.broadcastInsaneCombo(SCTFPRI.insaneCombos, client.playerName);
+  else                                                                                            xControl.broadcastInsaneCombo(0, client.playerName);
   
   insaneComboAutoLog();
 }
