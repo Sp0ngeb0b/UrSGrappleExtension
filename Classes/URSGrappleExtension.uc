@@ -1003,7 +1003,7 @@ defaultproperties
 {
      pluginName="UrS Grapple Extension"
      pluginAuthor="Sp0ngeb0b"
-     pluginVersion="5"
+     pluginVersion="6"
      MultiKillMessage(0)="<C03>%1 had a Double Kill."
      MultiKillMessage(1)="<C02>%1 had a Multi Kill!"
      MultiKillMessage(2)="<C06>%1 had an ULTRA KILL!!"
