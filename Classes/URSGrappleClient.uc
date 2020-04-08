@@ -62,7 +62,7 @@ replication {
 		conf,bStatsRestored,bRunningLC,countDown,flagCarrier,playCTFSound,playHitSound,enableHitSounds,
 		
 		// Functions
-		updateLCSettings,ACELogin,showLCPanel,showGrapple,specialLog,insaneComboAutoLog;
+		updateLCSettings,ACELogin,showLCPanel,showGrapple,specialLog,insaneComboAutoLog,addChatMsg;
 		
   reliable if (role != ROLE_Authority) // Replicate to server...
 		setGeneralSettings;
@@ -205,16 +205,12 @@ simulated function ACELogin() {
 
 /***************************************************************************************************
  *
- *  $DESCRIPTION  Called by NexgenHUD.addChatMsg()
+ *  $DESCRIPTION  Adds a new message to the chat log tab
  *
  **************************************************************************************************/
-simulated function addChatMsg(int col1, string text1,
-                          optional int col2, optional string text2,
-                          optional int col3, optional string text3,
-                          optional int col4, optional string text4,
-                          optional int col5, optional string text5) {
+simulated function addChatMsg(string playerName, string msg) {
 
-   if(ChatLog != none) ChatLog.addChatMsg(text1@text2@text3@text4@text5);
+   if(ChatLog != none) ChatLog.addChatMsg(playerName, msg);
 }
 
 /***************************************************************************************************
@@ -514,7 +510,6 @@ simulated function insaneComboAutoLog() {
  *  $DESCRIPTION  Default properties block.
  *
  **************************************************************************************************/
-
 defaultproperties
 {
      ctrlID="URSGrappleClient"

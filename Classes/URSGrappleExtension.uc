@@ -1,6 +1,8 @@
 /*
  *  ChangeLog:
  *
+ *  *Version _6b* [Fixed]   Chatlog not working
+ *
  *  *Version _6*  [Added]   Further insane combo messages
  *                [Fixed]   Accessed nones with bots
  *                [Fixed]   Color tags with disabled NexgenHUD
@@ -528,6 +530,7 @@ function bool mutatorTeamMessage(Actor sender, Pawn receiver, PlayerReplicationI
 	local flagbase Red_FB, Blue_FB;
 	local CTFFlag F,Red_F, Blue_F;
 	local float dRed_b, dBlue_b, dRed_f, dBlue_f;
+  local URSGrappleClient xClient;
 
 	// Check for commands.
 	if (sender != none && sender.isA('PlayerPawn') && !sender.isA('Spectator') && type == 'TeamSay') {
@@ -637,6 +640,15 @@ function bool mutatorTeamMessage(Actor sender, Pawn receiver, PlayerReplicationI
       return false;
     }
 	}
+  
+  // Chatlog
+  if (sender != none && PlayerPawn(sender) != none && receiver != none && (type == 'Say' || type == 'TeamSay')) {   
+    xClient = getXClient(receiver);
+    if(xClient != none && PlayerPawn(sender).playerReplicationInfo != none) {
+      xClient.addChatMsg(PlayerPawn(sender).playerReplicationInfo.playerName, s);
+    }
+  }
+  
   return true;
 }
 
@@ -785,6 +797,38 @@ function bool preventDeath(Pawn victim, Pawn killer, name damageType, vector hit
 
 /***************************************************************************************************
  *
+ *  $DESCRIPTION  Called to check if the specified message should be send to the given receiver.
+ *  $PARAM        sender    The actor that has send the message.
+ *  $PARAM        receiver  Pawn receiving the message.
+ *  $PARAM        msg       The message that is to be send.
+ *  $PARAM        bBeep     Whether or not to make a beep sound once received.
+ *  $PARAM        type      Type of the message that is to be send.
+ *  $RETURN       True if the message should be send, false if it should be suppressed.
+ *
+ **************************************************************************************************/
+function bool mutatorBroadcastMessage(Actor sender, Pawn receiver, out coerce string msg,
+                                      optional bool bBeep, out optional name type) {
+  local PlayerReplicationInfo senderPRI;
+  local URSGrappleClient xClient;
+	
+  // Get sender player replication info.
+	if (sender != none && sender.isA('Pawn')) {
+		senderPRI = Pawn(sender).playerReplicationInfo;
+	}
+	
+	// Check if we're dealing with a spectator chat message.
+	if(senderPRI != none && sender.isA('Spectator') && left(msg, len(senderPRI.playerName) + 1) ~= (senderPRI.playerName $ ":")) {
+    xClient = getXClient(receiver);
+    if(xClient != none) {
+      xClient.addChatMsg(senderPRI.playerName, mid(msg, len(senderPRI.playerName) + 1));
+    }
+  }
+  
+	return true;
+}
+
+/***************************************************************************************************
+ *
  *  $DESCRIPTION  Handles a potential command message.
  *  $PARAM        sender  PlayerPawn that has send the message in question.
  *  $PARAM        msg     Message send by the player, which could be a command.
@@ -797,7 +841,7 @@ function bool handleMsgCommand(PlayerPawn sender, string msg) {
 	local string cmd;
 	local bool bIsCommand;
 	local URSGrappleClient xClient;
-
+  
 	cmd = class'NexgenUtil'.static.trim(msg);
 	bIsCommand = true;
 	switch (cmd) {
@@ -1003,7 +1047,7 @@ defaultproperties
 {
      pluginName="UrS Grapple Extension"
      pluginAuthor="Sp0ngeb0b"
-     pluginVersion="6"
+     pluginVersion="6b"
      MultiKillMessage(0)="<C03>%1 had a Double Kill."
      MultiKillMessage(1)="<C02>%1 had a Multi Kill!"
      MultiKillMessage(2)="<C06>%1 had an ULTRA KILL!!"

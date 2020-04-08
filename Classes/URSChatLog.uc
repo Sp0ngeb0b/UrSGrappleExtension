@@ -30,12 +30,12 @@ function setContent() {
  *  $PARAM        msg  The message to add.
  *
  **************************************************************************************************/
-function addChatMsg(string msg) {
+function addChatMsg(string playerName, string msg) {
 	local string timeStamp;
 
     if (displayNewChat.bChecked) {
       timeStamp = "[" $ right("0" $ client.level.hour, 2) $ ":" $ right("0" $ client.level.minute, 2) $ "]";
-    	chatLog.addText(timeStamp @ msg);
+    	chatLog.addText(timeStamp @ playerName $":" @ msg);
     }
 }
 
